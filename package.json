@@ -1,0 +1,14 @@
+{
+  "name": "astros-js-dep",
+  "version": "0.0.2",
+  "description": "",
+  "main": "astro-js-dep.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+      "lang-utils":"^0.0.2"
+  },
+  "author": "",
+  "license": "ISC"
+}
