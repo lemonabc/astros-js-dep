@@ -11,6 +11,10 @@ module.exports = new astro.Middleware({
     modType: 'page',
     fileType: 'js'
 }, function(asset, next) {
+    if(!asset.data){
+        next(asset);
+        return
+    }
     var project = asset.project;
     var prjCfg = Object.assign({
         source: {},
