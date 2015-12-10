@@ -1,6 +1,6 @@
 {
   "name": "astros-js-dep",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "astro-js-dep.js",
   "scripts": {
