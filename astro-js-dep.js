@@ -67,23 +67,31 @@ module.exports = new astro.Middleware({
     });
 });
 
+let refer_cache = {};
 // 获取代码里的引用关系
-function getReference(code) {
-    let ret = [];
-    code.replace(/@require\s+(\S+)/g, function(a, reqjs) {
-        reqjs.split(',').forEach(function(item){
-            item = item.replace(/^\s|\s$/,'');
-            if(item){
-                ret.push(item)
-            }
+function getReference(asset) {
+    let cache = refer_cache[asset.filePath] || {};
+    if(cache.mtime !== asset.mtime){
+        let ret = [];
+        (asset.data||'').replace(/@require\s+(\S+)/g, function(a, reqjs) {
+            reqjs.split(',').forEach(function(item){
+                item = item.replace(/^\s|\s$/,'');
+                if(item){
+                    ret.push(item)
+                }
+            });
         });
-    });
-    return ret;
+        cache.data = ret;
+        cache.mtime = asset.mtime;
+
+        refer_cache[asset.filePath] = cache;
+    }
+    return cache.data;
 }
 
 function getJsDependent(asset, callback) {
     let errorMsg = '';
-    let jsLibs = getReference(asset.data);
+    let jsLibs = getReference(asset);
     //处理依赖
     if (jsLibs.length > 0) {
         // 处理JS组件依赖关系
@@ -106,7 +114,7 @@ function getJsDependent(asset, callback) {
                     if (!asset.data) {
                         errorMsg += '/* jsLib:' + jsLibs[i] + ' is miss or empty */\n';
                     } else {
-                        jsLibs = jsLibs.concat(getReference(asset.data));
+                        jsLibs = jsLibs.concat(getReference(asset));
                     }
                     i++;
                     process.next();
