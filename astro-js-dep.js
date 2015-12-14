@@ -71,7 +71,12 @@ module.exports = new astro.Middleware({
 function getReference(code) {
     let ret = [];
     code.replace(/@require\s+(\S+)/g, function(a, reqjs) {
-        ret = ret.concat(reqjs.split(','));
+        reqjs.split(',').forEach(function(item){
+            item = item.replace(/^\s|\s$/,'');
+            if(item){
+                ret.push(item)
+            }
+        });
     });
     return ret;
 }
