@@ -60,7 +60,9 @@ function getReference(asset,callback) {
         // 读取依赖组件
         tempDate = tempDate + asset.data;
         let cache = refer_cache[asset.filePath] || {};
-        if(cache.mtime !== asset.mtime){
+        if(cache.mtime !== asset.mtime ||
+            (typeof asset.mtime) == 'undefined'){
+            
             let ret = [];
             (tempDate||'').replace(/@require\s+(\S+)/g, function(a, reqjs) {
                 reqjs.split(',').forEach(function(item){
@@ -130,7 +132,6 @@ function getJsDependent(asset, callback) {
             done();
         }
         function done() {
-                        console.log(jsLibs);
             callback(errorMsg, util.dequeueArray(jsLibs).reverse());
         }
 
