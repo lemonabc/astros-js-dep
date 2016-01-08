@@ -9,19 +9,32 @@ var util = require('lang-utils');
 
 module.exports = new astro.Middleware({
     modType: 'page',
-    fileType: 'js'
+    fileType: ['js','css']
 }, function(asset, next) {
     if(!asset.data){
         next(asset);
         return
     }
-    var project = asset.project;
-    var prjCfg = Object.assign({
+    let project = asset.project;
+    let prjCfg = Object.assign({
         source: {},
         unCombine: []
     }, asset.prjCfg);
+    let data;
+    if(asset.fileType === 'css'){
+            data = asset.data;
+        let _asset = asset.clone();
+            _asset.fileType = 'js';
+        asset.data = _asset.read();
+    }
+
     getJsDependent(asset, function(errorMsg, jsLibs) {
         asset.jsLibs = [errorMsg, jsLibs];
+
+        if(asset.fileType === 'css'){
+            asset.data = data;
+        }
+
         next(asset);
     });
 });
@@ -60,9 +73,7 @@ function getReference(asset,callback) {
         // 读取依赖组件
         tempDate = tempDate + asset.data;
         let cache = refer_cache[asset.filePath] || {};
-        if(cache.mtime !== asset.mtime ||
-            (typeof asset.mtime) == 'undefined'){
-            
+        if(cache.mtime !== asset.mtime){
             let ret = [];
             (tempDate||'').replace(/@require\s+(\S+)/g, function(a, reqjs) {
                 reqjs.split(',').forEach(function(item){
@@ -110,7 +121,7 @@ function getJsDependent(asset, callback) {
                         project: asset.project
                     }).getContent(function(asset) {
                         if (!asset.data) {
-                            errorMsg += '/* jsLib:' + jsLibs[i] + ' is miss or empty */\n';
+                            errorMsg += '/* js-dep -> (' + asset.info + ')' + jsLibs[i] + ' is miss or empty */\n';
                             i++;
                             process.next();
                         } else {
