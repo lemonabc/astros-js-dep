@@ -9,9 +9,9 @@ var util = require('lang-utils');
 
 module.exports = new astro.Middleware({
     modType: 'page',
-    fileType: ['js','css']
+    fileType: ['js', 'css']
 }, function(asset, next) {
-    if(!asset.data){
+    if (!asset.data) {
         next(asset);
         return
     }
@@ -21,17 +21,21 @@ module.exports = new astro.Middleware({
         unCombine: []
     }, asset.prjCfg);
     let data;
-    if(asset.fileType === 'css'){
-            data = asset.data;
+    if (asset.fileType === 'css') {
+        data = asset.data;
         let _asset = asset.clone();
-            _asset.fileType = 'js';
+        _asset.fileType = 'js';
         asset.data = _asset.read();
     }
 
     getJsDependent(asset, function(errorMsg, jsLibs) {
-        asset.jsLibs = [errorMsg, jsLibs];
 
-        if(asset.fileType === 'css'){
+        asset.jsLibs = asset.jsLibs || ['', []];
+        asset.jsLibs[0] = asset.jsLibs[0] ? asset.jsLibs[0] + '\n' + errorMsg :
+            errorMsg;
+        asset.jsLibs[1] = jsLibs.concat(asset.jsLibs[1]);
+
+        if (asset.fileType === 'css') {
             asset.data = data;
         }
 
@@ -41,7 +45,7 @@ module.exports = new astro.Middleware({
 
 let refer_cache = {};
 // 获取代码里的引用关系
-function getReference(asset,callback) {
+function getReference(asset, callback) {
     //读取组件代码
     var tempDate = '';
     let webComCode = '',
@@ -73,12 +77,12 @@ function getReference(asset,callback) {
         // 读取依赖组件
         tempDate = tempDate + asset.data;
         let cache = refer_cache[asset.filePath] || {};
-        if(cache.mtime !== asset.mtime){
+        if (cache.mtime !== asset.mtime) {
             let ret = [];
-            (tempDate||'').replace(/@require\s+(\S+)/g, function(a, reqjs) {
-                reqjs.split(',').forEach(function(item){
-                    item = item.replace(/^\s|\s$/,'');
-                    if(item){
+            (tempDate || '').replace(/@require\s+(\S+)/g, function(a, reqjs) {
+                reqjs.split(',').forEach(function(item) {
+                    item = item.replace(/^\s|\s$/, '');
+                    if (item) {
                         ret.push(item)
                     }
                 });
@@ -89,7 +93,7 @@ function getReference(asset,callback) {
             refer_cache[asset.filePath] = cache;
         }
         callback(cache.data);
-        
+
     }).catch(function(error) {
         console.error('astro-js-process', error);
         asset.data = error + '\n' + asset.data
@@ -100,8 +104,8 @@ function getReference(asset,callback) {
 
 function getJsDependent(asset, callback) {
     let errorMsg = '';
-    getReference(asset,function(jsLibs){
-         //处理依赖
+    getReference(asset, function(jsLibs) {
+        //处理依赖
         if (jsLibs.length > 0) {
             // 处理JS组件依赖关系
             let process = (function*() {
@@ -125,7 +129,7 @@ function getJsDependent(asset, callback) {
                             i++;
                             process.next();
                         } else {
-                            getReference(asset,function(tempJsLibs){
+                            getReference(asset, function(tempJsLibs) {
                                 jsLibs = jsLibs.concat(tempJsLibs);
                                 i++;
                                 process.next();
@@ -142,10 +146,11 @@ function getJsDependent(asset, callback) {
         } else {
             done();
         }
+
         function done() {
             callback(errorMsg, util.dequeueArray(jsLibs).reverse());
         }
 
     });
-   
+
 }
