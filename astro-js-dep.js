@@ -68,7 +68,7 @@ function getReference(asset, callback) {
         var wcError = '';
         assets.forEach(function(ast) {
             if (!ast.data)
-                wcError += ['/* ', 'webCom:' + ast.filePath + ' is miss */', ''].join('\n');
+                wcError += '/* webCom:' + ast.filePath + ' is miss */' + '\n';
             else {
                 webComCode += '/* ' + ast.filePath + ' */\n' + ast.data + '\n';
             }
