@@ -33,7 +33,7 @@ module.exports = new astro.Middleware({
         asset.jsLibs = asset.jsLibs || ['', []];
         asset.jsLibs[0] = asset.jsLibs[0] ? asset.jsLibs[0] + '\n' + errorMsg :
             errorMsg;
-        asset.jsLibs[1] = jsLibs.concat(asset.jsLibs[1]);
+        asset.jsLibs[1] = asset.jsLibs[1] ? jsLibs.concat(asset.jsLibs[1]) : jsLibs;
 
         if (asset.fileType === 'css') {
             asset.data = data;
