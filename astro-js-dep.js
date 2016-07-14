@@ -76,7 +76,10 @@ function getReference(asset, callback) {
         tempDate = webComCode + (tempDate || '');
         // 读取依赖组件
         tempDate = tempDate + asset.data;
-        let cache = refer_cache[asset.filePath] || {};
+        let cache = refer_cache[asset.filePath] || {
+            data : [],
+            mtime: 0
+        };
         if (cache.mtime !== asset.mtime) {
             let ret = [];
             (tempDate || '').replace(/@require\s+(\S+)/g, function(a, reqjs) {
@@ -95,7 +98,7 @@ function getReference(asset, callback) {
         callback(cache.data);
 
     }).catch(function(error) {
-        console.error('astro-js-process', error);
+        console.error('astro-js-dep', asset.info, error);
         asset.data = error + '\n' + asset.data
         next(asset);
     });
